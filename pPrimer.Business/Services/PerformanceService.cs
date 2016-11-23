@@ -44,19 +44,43 @@ namespace pPrimer.Business.Services
 
         public async Task<PerformanceState> GetState()
         {
-
             return await Task.Run(() =>
                        {
                            return new PerformanceState
                                       {
-                                          CpuTotalProcessUsagePercentage = _cpuTotalProcessUsagePercentage.NextValue(),
-                                          CpuUsagePercentage =_cpuUsagePercentage.Select(cpuUsage => cpuUsage.NextValue()).ToList(),
-                                          WorkingSetBytes = _workingSet.NextValue(),
-                                          TotalMemoryBytes = GC.GetTotalMemory(false),
-                                          ThredCount = _threadCountTotalProcess.NextValue(),
+                                          CpuTotalProcessUsagePercentage = GetCpuTotalProcessUsagePercentageValue(),
+                                          CpuUsagePercentage = GetCpuUsagePercentageValues(),
+                                          WorkingSetBytes = GetWorkingSetBytesValue(),
+                                          TotalMemoryBytes = GetTotalMemoryBytesValue(),
+                                          ThredCount = GetThredCountValue(),
                                           TotalCpus = _cpuCount
                                       };
                        });
+        }
+
+        private float GetThredCountValue()
+        {
+            return _threadCountTotalProcess.NextValue();
+        }
+
+        private static long GetTotalMemoryBytesValue()
+        {
+            return GC.GetTotalMemory(false);
+        }
+
+        private float GetWorkingSetBytesValue()
+        {
+            return _workingSet.NextValue();
+        }
+
+        private List<float> GetCpuUsagePercentageValues()
+        {
+            return _cpuUsagePercentage.Select(cpuUsage => cpuUsage.NextValue()).ToList();
+        }
+
+        private float GetCpuTotalProcessUsagePercentageValue()
+        {
+            return _cpuTotalProcessUsagePercentage.NextValue();
         }
     }
 }
