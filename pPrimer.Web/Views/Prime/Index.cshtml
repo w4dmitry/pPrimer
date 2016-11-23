@@ -1,0 +1,69 @@
+﻿@model pPrimer.Web.Models.PrimeMethodsViewModel
+
+@{
+    ViewBag.Title = "pPrimer";
+}
+
+<div>
+    <div>
+        <h2>Prime calculation methods:</h2>
+        
+        <div>
+            <form method="post" action="@Url.Action("Calculate")" data-cb-ajax-methods="true">
+
+                <table class="form-methods">
+                    <tr>
+                        <th>Method</th>
+                        <th>Number</th>
+                        <th></th>
+                    </tr>
+                    @for (var i = 0; i < Model.Methods.Count; i++)
+                    {
+                        <tr>
+                            <td>
+                                @Html.CheckBoxFor(model => Model.Methods[i].Selected)
+
+                                @Html.DisplayFor(model => Model.Methods[i].Text)
+                                @Html.HiddenFor(model => Model.Methods[i].Value)
+                            </td>
+                            <td>
+                                @Html.EditorFor(model => Model.Methods[i].TopNumber)
+                            </td>
+                            <td>
+                                @Html.ValidationMessageFor(model => Model.Methods[i].TopNumber)
+                            </td>
+
+                        </tr>
+                    }
+                </table>
+
+                <br />
+                <div id="submitButton">
+                    <input type="submit" value="Compute" />
+
+                    <hr />
+                </div>
+
+            </form>
+        </div>
+       
+        <div style="display: none">
+            <form method="post" action="@Url.Action("GetStatus")" data-cb-ajax-status="true">
+                <input id="calculationSid" type="hidden" name="sid"/>
+            </form>
+        </div>
+        
+        <div id="waiterDiv" style="display: none">
+            <img src="/Content/Images/loading.gif" width="25" height="25" />
+            <span>Runing...</span>
+            <hr/>
+        </div>
+        
+        <div id="statusBox">
+        </div>
+
+
+
+    </div>
+
+</div>
