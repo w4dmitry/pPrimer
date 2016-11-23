@@ -1,0 +1,2 @@
+# pPrimer
+Prime number calculator
