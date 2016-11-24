@@ -48,18 +48,24 @@ namespace pPrimer.Monitor
                                    var isHeaderPosted = false;
                                    while (!_cancellationSource.IsCancellationRequested)
                                    {
-                                       var result = await GetState(cancellationToken);
+                                       var states = await GetState(cancellationToken);
 
-                                       var results = JsonConvert.DeserializeObject<PerformanceState>(result);
+                                       var results = JsonConvert.DeserializeObject<IEnumerable<PerformanceState>>(states);
 
-                                       if (!isHeaderPosted)
+                                       if (results != null)
                                        {
-                                           _log.PostToStateLog(PerformanceStateFormatter.GetMessageForStateLogHeader(results));
-                                           isHeaderPosted = true;
-                                       }
+                                           foreach (var result in results)
+                                           {
+                                               if (!isHeaderPosted)
+                                               {
+                                                   _log.PostToStateLog(PerformanceStateFormatter.GetMessageForStateLogHeader(result));
+                                                   isHeaderPosted = true;
+                                               }
 
-                                       _log.PostToConcole(PerformanceStateFormatter.GetMessageForConcole(results));
-                                       _log.PostToStateLog(PerformanceStateFormatter.GetMessageForStateLog(results));
+                                               _log.PostToConcole(PerformanceStateFormatter.GetMessageForConcole(result));
+                                               _log.PostToStateLog(PerformanceStateFormatter.GetMessageForStateLog(result));
+                                           }
+                                       }
 
                                        await Task.Delay(pollInterval, cancellationToken);
                                    }

@@ -8,6 +8,7 @@ using pPrimer.Web.Models;
 
 namespace pPrimer.Web.Controllers
 {
+    using System.Diagnostics;
     using System.Threading.Tasks;
 
     public class PerformanceController : Controller
@@ -23,10 +24,17 @@ namespace pPrimer.Web.Controllers
         [AllowAnonymous]
         public async Task<ActionResult> State()
         {
-            var state = await _performanceService.GetState();
-            var model = new PerformanceStateViewModel(state);
+            DateTime start = DateTime.UtcNow;
 
-            return Json(model);
+            var states = await _performanceService.GetState();
+            var model = new PerformanceStateListViewModel(states);
+
+            var res = Json(model.States);
+
+            DateTime end = DateTime.UtcNow;
+            Debug.WriteLine($"State in {(end - start).TotalMilliseconds} ms.");
+
+            return res;
         }
     }
 }

@@ -16,7 +16,8 @@ namespace pPrimer.Monitor
         public static string GetMessageForConcole(PerformanceState state)
         {
             _result.Clear();
-            _result.Append($"CPU Process:{state.CpuTotalProcessUsagePercentage,3:###}%, ");
+            _result.Append($"{state.TimeStamp:HH:mm:ss}, ");
+            _result.Append($"CPU Proc:{state.CpuTotalProcessUsagePercentage,3:###}%, ");
             _result.Append($"{string.Join(", ", state.CpuUsagePercentage.Select((cpu, i) => $"CPU{i}:{cpu,3:###}%"))}, ");
             _result.Append($"TotalMemory:{state.TotalMemoryBytes / 1024 / 1024,4:####} Mb, ");
             _result.Append($"WorkingSet:{state.WorkingSetBytes / 1024 / 1024,4:####} Mb, ");
@@ -28,6 +29,7 @@ namespace pPrimer.Monitor
         public static string GetMessageForStateLog(PerformanceState state)
         {
             _result.Clear();
+            _result.Append($"{state.TimeStamp:HH:mm:ss}, ");
             _result.Append($"{state.CpuTotalProcessUsagePercentage}, ");
             _result.Append($"{string.Join(", ", state.CpuUsagePercentage)}, ");
             _result.Append($"{state.TotalMemoryBytes}, ");
@@ -40,6 +42,7 @@ namespace pPrimer.Monitor
         public static string GetMessageForStateLogHeader(PerformanceState state)
         {
             _result.Clear();
+            _result.Append("Timestamp, ");
             _result.Append("CPU Total%, ");
             _result.Append($"{string.Join(", ", state.CpuUsagePercentage.Select((cpu,i) => $"CPU{ i}% "))}, ");
             _result.Append($"{nameof(state.TotalMemoryBytes)}, ");

@@ -14,5 +14,7 @@ namespace pPrimer.Business
         public float WorkingSetBytes { get; set; }
         public long TotalMemoryBytes { get; set; }
         public float ThredCount { get; set; }
+
+        public DateTime TimeStamp { get; set; }
     }
 }

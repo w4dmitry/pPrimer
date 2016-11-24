@@ -8,6 +8,6 @@ namespace pPrimer.Business.Services
 {
     public interface IPerformanceService
     {
-        Task<PerformanceState> GetState();
+        Task<IEnumerable<PerformanceState>> GetState();
     }
 }

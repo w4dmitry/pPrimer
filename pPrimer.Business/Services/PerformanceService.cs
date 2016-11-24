@@ -7,7 +7,14 @@ using System.Diagnostics;
 
 namespace pPrimer.Business.Services
 {
-    public class PerformanceService : IPerformanceService
+    using System.Collections.Concurrent;
+    using System.Threading;
+
+    using log4net;
+
+    using pPrimer.Business.Tools;
+
+    public class PerformanceService : IPerformanceService, IDisposable
     {
         private readonly PerformanceCounter _cpuTotalUsagePercentage;
         private readonly List<PerformanceCounter> _cpuUsagePercentage;
@@ -26,8 +33,19 @@ namespace pPrimer.Business.Services
 
         private readonly int _cpuCount;
 
-        public PerformanceService()
+        private readonly TaskCompletionSource<bool> _queryStateTcs;
+        private readonly TimeSpan _queryTaskPeriod = TimeSpan.FromSeconds(1);
+        private readonly int _limitQueryQueue = 60; // 60 seconds or 60 samples
+        private readonly ConcurrentQueue<PerformanceState> _queryQueue = new ConcurrentQueue<PerformanceState>();
+
+        private readonly ILog _logger;
+
+        public PerformanceService(ILog logger)
         {
+            if (logger == null)
+                throw new ArgumentException(string.Format(Strings.ArgumentCannotBeNull, "logger"));
+            _logger = logger;
+
             var instanceName = Process.GetCurrentProcess().ProcessName;
             _cpuCount = Environment.ProcessorCount;
             _cpuUsagePercentage = new List<PerformanceCounter>();
@@ -40,22 +58,52 @@ namespace pPrimer.Business.Services
             _workingSet = new PerformanceCounter(ProcesCategory, ProcessCategoryWorkingSet, instanceName);
 
             _threadCountTotalProcess = new PerformanceCounter(ProcesCategory, ProcessCategoryThreadCount, ThreadCountParam);
+
+            _queryStateTcs = ((Action)QueryState).ToPeriodicTask<bool>(_queryTaskPeriod, _queryTaskPeriod);
         }
 
-        public async Task<PerformanceState> GetState()
+        private void QueryState()
         {
-            return await Task.Run(() =>
-                       {
-                           return new PerformanceState
-                                      {
-                                          CpuTotalProcessUsagePercentage = GetCpuTotalProcessUsagePercentageValue(),
-                                          CpuUsagePercentage = GetCpuUsagePercentageValues(),
-                                          WorkingSetBytes = GetWorkingSetBytesValue(),
-                                          TotalMemoryBytes = GetTotalMemoryBytesValue(),
-                                          ThredCount = GetThredCountValue(),
-                                          TotalCpus = _cpuCount
-                                      };
-                       });
+            // Generate new state
+            var newState = new PerformanceState
+                               {
+                                   CpuTotalProcessUsagePercentage = GetCpuTotalProcessUsagePercentageValue(),
+                                   CpuUsagePercentage = GetCpuUsagePercentageValues(),
+                                   WorkingSetBytes = GetWorkingSetBytesValue(),
+                                   TotalMemoryBytes = GetTotalMemoryBytesValue(),
+                                   ThredCount = GetThredCountValue(),
+                                   TotalCpus = _cpuCount,
+                                   TimeStamp = DateTime.UtcNow
+                               };
+
+            _queryQueue.Enqueue(newState);
+
+            // Cycle buffer behaviour
+            // Calling count is O(n), but performance is not important here
+            while (_queryQueue.Count > _limitQueryQueue)
+                GetCounters();
+        }
+
+        private PerformanceState GetCounters()
+        {
+            PerformanceState pCounter;
+            _queryQueue.TryDequeue(out pCounter);
+
+            return pCounter;
+        }
+
+        public async Task<IEnumerable<PerformanceState>> GetState()
+        {
+            return await Task.Run(
+                       () =>
+                           {
+                               var list = new List<PerformanceState>();
+                               var state = GetCounters();
+                               if(state != null)
+                                   list.Add(state);
+
+                               return list.Count > 0 ? list : null;
+                           });
         }
 
         private float GetThredCountValue()
@@ -81,6 +129,17 @@ namespace pPrimer.Business.Services
         private float GetCpuTotalProcessUsagePercentageValue()
         {
             return _cpuTotalProcessUsagePercentage.NextValue();
+        }
+
+        public void Dispose()
+        {
+            // Dispose called by Unity for ContainerControlledLifetimeManager
+            _queryStateTcs.TrySetCanceled();
+
+            if (_queryStateTcs.Task.IsFaulted)
+            {
+                _logger.Error("Performance query task faulted!");
+            }
         }
     }
 }
