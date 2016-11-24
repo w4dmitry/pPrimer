@@ -80,6 +80,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Strings.resx</DependentUpon>
     </Compile>
+    <Compile Include="Tools\TaskQueue.cs" />
     <Compile Include="TypeResolver\IPrimeFacilitiesResolver.cs" />
     <Compile Include="Services\IPrimeService.cs" />
     <Compile Include="Services\MethodSetTopNumberPair.cs" />

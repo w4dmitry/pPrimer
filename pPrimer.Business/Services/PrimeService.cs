@@ -35,6 +35,8 @@ namespace pPrimer.Business.Services
 
         private readonly IValidator<MethodIdNumberPairContainer> _methodIdNumberPairContainerValidator;
 
+        private readonly TaskQueue _taskQueue = new TaskQueue(wokersCount:1);
+
         public PrimeService(IPrimeFacilitiesResolver resolver, ILog logger, IValidator<MethodIdNumberPairContainer> methodIdNumberPairContainerValidator)
         {
             if (resolver == null)
@@ -109,16 +111,18 @@ namespace pPrimer.Business.Services
             if (selectedMethods.Count == 0)
                 return null;
 
+
+
             var tasksToRun = selectedMethods.Select(item =>
                     {
                         return new PrimeCalculationTask
                                    {
-                                       Task = Task.Run(() =>
-                                               {
-                                                   var performanceRunner = _resolver.GetPerformanceRunner(item.MethodSet.MethodType, item.MethodSet.RunnerType);
-                                                   performanceRunner.GetAllNumbers(item.TopNumber);
-                                                   return performanceRunner.Result;
-                                               }),
+                                       Task = _taskQueue.Enqueue(() =>
+                                       {
+                                           var performanceRunner = _resolver.GetPerformanceRunner(item.MethodSet.MethodType, item.MethodSet.RunnerType);
+                                           performanceRunner.GetAllNumbers(item.TopNumber);
+                                           return performanceRunner.Result;
+                                       }),
                                        MethodSet = item.MethodSet,
                                        StartTime = DateTime.UtcNow
                                    };

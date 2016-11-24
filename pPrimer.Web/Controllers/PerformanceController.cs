@@ -24,15 +24,15 @@ namespace pPrimer.Web.Controllers
         [AllowAnonymous]
         public async Task<ActionResult> State()
         {
-            DateTime start = DateTime.UtcNow;
+            //DateTime start = DateTime.UtcNow;
 
             var states = await _performanceService.GetState();
             var model = new PerformanceStateListViewModel(states);
 
             var res = Json(model.States);
 
-            DateTime end = DateTime.UtcNow;
-            Debug.WriteLine($"State in {(end - start).TotalMilliseconds} ms.");
+            //DateTime end = DateTime.UtcNow;
+            //Debug.WriteLine($"State in {(end - start).TotalMilliseconds} ms.");
 
             return res;
         }

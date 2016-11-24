@@ -42,7 +42,7 @@ namespace pPrimer.Web.Controllers
         [AllowAnonymous]
         public ActionResult Calculate(IList<PrimeMethodViewModel> methods)
         {
-            DateTime start = DateTime.UtcNow;
+            //DateTime start = DateTime.UtcNow;
             
             if(methods == null)
                 return _badResult;
@@ -55,8 +55,9 @@ namespace pPrimer.Web.Controllers
 
             var result = string.IsNullOrWhiteSpace(sessionId) ? _badResult : Json(new { result = true, sid = sessionId });
 
-            DateTime end = DateTime.UtcNow;
-            Debug.WriteLine($"Calculate in {(end-start).TotalMilliseconds} ms.");
+            //DateTime end = DateTime.UtcNow;
+            //Debug.WriteLine($"Calculate in {(end-start).TotalMilliseconds} ms.");
+
             return result;
         }
 
@@ -64,15 +65,15 @@ namespace pPrimer.Web.Controllers
         [AllowAnonymous]
         public ActionResult GetStatus(string sid)
         {
-            DateTime start = DateTime.UtcNow;
+            //DateTime start = DateTime.UtcNow;
 
             var result = _primeService.GetStatus(sid);
             var model = new StatusModel(result);
 
             var res = Json(model);
             
-            DateTime end = DateTime.UtcNow;
-            Debug.WriteLine($"GetStatus in {(end - start).TotalMilliseconds} ms.");
+            //DateTime end = DateTime.UtcNow;
+            //Debug.WriteLine($"GetStatus in {(end - start).TotalMilliseconds} ms.");
 
             return res;
         }
